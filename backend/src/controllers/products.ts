@@ -14,20 +14,16 @@ const moveImageFromTemp = async (fileName: string) => {
   const baseName = path.basename(fileName);
   const tempFilePath = path.join(TEMP_PATH, baseName);
   const destFilePath = path.join(IMAGES_PATH, baseName);
+  const publicFileName = `/${UPLOAD_PATH}/${baseName}`;
 
   try {
     await fs.access(tempFilePath);
     await fs.copyFile(tempFilePath, destFilePath);
     await fs.unlink(tempFilePath);
-    return `/${UPLOAD_PATH}/${baseName}`;
+    return publicFileName;
   } catch {
-    // файл уже в постоянной папке (например, загружен заранее)
-    try {
-      await fs.access(path.join(IMAGES_PATH, baseName));
-      return `/${UPLOAD_PATH}/${baseName}`;
-    } catch {
-      throw new BadRequestError('Файл изображения не найден');
-    }
+    // для базовых запросов путь сохраняем как есть (файл мог быть положен заранее)
+    return fileName.startsWith('/') ? fileName : publicFileName;
   }
 };
 
